@@ -1,11 +1,12 @@
 // ===================================================================
-// MotionBoss LMS - Server Entry Point (Vercel Serverless Compatible)
+// Mega E-Commerce Backend - Server Entry Point (Vercel Serverless Compatible)
 // সার্ভার শুরু করার মূল ফাইল - MongoDB connect এবং server start
 // ===================================================================
 
 import mongoose from 'mongoose';
 import app from './app';
 import config from './app/config';
+import { setupSwagger } from './swagger.config';
 
 // ==================== Uncaught Exception Handler ====================
 process.on('uncaughtException', (error) => {
@@ -90,6 +91,9 @@ async function cleanupStaleIndexes() {
   }
 }
 
+// ==================== Setup Swagger ====================
+setupSwagger(app);
+
 // ==================== Connect DB immediately ====================
 // Vercel এ এই connection serverless function start হওয়ার সাথে সাথে শুরু হবে
 connectDB().then(() => {
@@ -103,14 +107,24 @@ connectDB().then(() => {
 if (process.env.NODE_ENV !== 'production') {
   const server = app.listen(config.port, () => {
     console.log('');
-    console.log('╔══════════════════════════════════════════════╗');
-    console.log('║                                              ║');
-    console.log('║   🎓 MotionBoss LMS Server Started!          ║');
-    console.log('║                                              ║');
-    console.log(`║   🌐 URL: http://localhost:${config.port}               ║`);
-    console.log(`║   🔧 Environment: ${config.env.padEnd(21)}   ║`);
-    console.log('║                                              ║');
-    console.log('╚══════════════════════════════════════════════╝');
+    console.log('╔══════════════════════════════════════════════════════════╗');
+    console.log('║                                                          ║');
+    console.log('║   🛒 Mega E-Commerce Backend Started!                    ║');
+    console.log('║                                                          ║');
+    console.log(`║   🌐 API:     http://localhost:${config.port}                       ║`);
+    console.log(`║   📚 Docs:    http://localhost:${config.port}/api-docs              ║`);
+    console.log(`║   🔧 Env:     ${config.env.padEnd(42)}║`);
+    console.log('║                                                          ║');
+    console.log('║   Features:                                              ║');
+    console.log('║   ✅ Products & Categories                               ║');
+    console.log('║   ✅ Cart & Wishlist                                     ║');
+    console.log('║   ✅ Orders & Payments (SSLCommerz, bKash)               ║');
+    console.log('║   ✅ Shipping & Tracking                                 ║');
+    console.log('║   ✅ Reviews & Ratings                                   ║');
+    console.log('║   ✅ Invoice Generation                                  ║');
+    console.log('║   ✅ Analytics Dashboard                                 ║');
+    console.log('║                                                          ║');
+    console.log('╚══════════════════════════════════════════════════════════╝');
     console.log('');
   });
 
@@ -132,3 +146,4 @@ if (process.env.NODE_ENV !== 'production') {
 
 // ==================== Export for Vercel ====================
 export default app;
+

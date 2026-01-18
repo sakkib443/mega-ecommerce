@@ -1,88 +1,83 @@
 // ===================================================================
-// ExtraWeb Backend - Category Routes
-// API endpoints for Category module with Hierarchical Support
+// Mega E-Commerce Backend - Category Routes
+// API routes for Category operations
 // ===================================================================
 
 import express from 'express';
 import CategoryController from './category.controller';
-import validateRequest from '../../middlewares/validateRequest';
 import { authMiddleware, authorizeRoles } from '../../middlewares/auth';
+import validateRequest from '../../middlewares/validateRequest';
 import { createCategoryValidation, updateCategoryValidation } from './category.validation';
 
 const router = express.Router();
 
-// ===================================================================
-// PUBLIC ROUTES
-// ===================================================================
+// ==================== Public Routes ====================
+// Get all categories
+router.get('/', CategoryController.getAllCategories);
 
-// GET /api/categories - Get all active categories (for website filter)
-router.get('/', CategoryController.getActiveCategories);
+// Get category tree
+router.get('/tree', CategoryController.getCategoryTree);
 
-// GET /api/categories/parents - Get parent categories only
-router.get('/parents', CategoryController.getParentCategories);
+// Get root categories
+router.get('/root', CategoryController.getRootCategories);
 
-// GET /api/categories/hierarchical - Get nested categories (parent with children)
-router.get('/hierarchical', CategoryController.getHierarchicalCategories);
+// Get featured categories
+router.get('/featured', CategoryController.getFeaturedCategories);
 
-// GET /api/categories/children/:parentId - Get child categories
-router.get('/children/:parentId', CategoryController.getChildCategories);
+// Get menu categories
+router.get('/menu', CategoryController.getMenuCategories);
 
-// GET /api/categories/slug/:slug - Get category by slug
+// Get home categories
+router.get('/home', CategoryController.getHomeCategories);
+
+// Get child categories
+router.get('/:parentId/children', CategoryController.getChildCategories);
+
+// Get category by slug
 router.get('/slug/:slug', CategoryController.getCategoryBySlug);
 
-// ===================================================================
-// ADMIN ROUTES
-// ===================================================================
+// Get category by ID
+router.get('/:id', CategoryController.getCategoryById);
 
-// GET /api/categories/admin/all - Get all categories with filters (Admin and Mentor)
-router.get(
-    '/admin/all',
-    authMiddleware,
-    authorizeRoles('admin', 'mentor'),
-    CategoryController.getAllCategories
-);
+// Get category with children
+router.get('/:id/with-children', CategoryController.getCategoryWithChildren);
 
-// GET /api/categories/admin/parents - Get parent categories (Admin and Mentor)
-router.get(
-    '/admin/parents',
-    authMiddleware,
-    authorizeRoles('admin', 'mentor'),
-    CategoryController.getParentCategories
-);
+// Get category breadcrumbs
+router.get('/:id/breadcrumbs', CategoryController.getCategoryBreadcrumbs);
 
-// GET /api/categories/admin/:id - Get single category (Admin and Mentor)
-router.get(
-    '/admin/:id',
-    authMiddleware,
-    authorizeRoles('admin', 'mentor'),
-    CategoryController.getCategoryById
-);
-
-// POST /api/categories/admin - Create new category (Admin and Mentor)
+// ==================== Admin Routes ====================
+// Create category
 router.post(
-    '/admin',
+    '/',
     authMiddleware,
-    authorizeRoles('admin', 'mentor'),
+    authorizeRoles('admin', 'super_admin'),
     validateRequest(createCategoryValidation),
     CategoryController.createCategory
 );
 
-// PATCH /api/categories/admin/:id - Update category (Admin and Mentor)
+// Update category
 router.patch(
-    '/admin/:id',
+    '/:id',
     authMiddleware,
-    authorizeRoles('admin', 'mentor'),
+    authorizeRoles('admin', 'super_admin'),
     validateRequest(updateCategoryValidation),
     CategoryController.updateCategory
 );
 
-// DELETE /api/categories/admin/:id - Delete category
+// Delete category
 router.delete(
-    '/admin/:id',
+    '/:id',
     authMiddleware,
-    authorizeRoles('admin'),
+    authorizeRoles('admin', 'super_admin'),
     CategoryController.deleteCategory
 );
 
-export const CategoryRoutes = router;
+// Update category order
+router.patch(
+    '/admin/order',
+    authMiddleware,
+    authorizeRoles('admin', 'super_admin'),
+    CategoryController.updateCategoryOrder
+);
 
+export const CategoryRoutes = router;

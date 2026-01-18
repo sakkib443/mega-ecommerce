@@ -48,7 +48,7 @@ export const createUserValidation = z.object({
 
     avatar: z.string().url('Avatar must be a valid URL').optional(),
 
-    role: z.enum(['admin', 'mentor', 'student']).optional().default('student'),
+    role: z.enum(['super_admin', 'admin', 'customer']).optional().default('customer'),
   }),
 });
 
@@ -89,7 +89,7 @@ export const adminUpdateUserValidation = z.object({
   body: z.object({
     firstName: z.string().max(50).optional(),
     lastName: z.string().max(50).optional(),
-    role: z.enum(['admin', 'mentor', 'student']).optional(),
+    role: z.enum(['super_admin', 'admin', 'customer']).optional(),
     status: z.enum(['active', 'blocked', 'pending']).optional(),
     isEmailVerified: z.boolean().optional(),
   }),
@@ -138,7 +138,7 @@ export const userQueryValidation = z.object({
     page: z.string().optional(),
     limit: z.string().optional(),
     searchTerm: z.string().optional(),
-    role: z.enum(['admin', 'mentor', 'student']).optional(),
+    role: z.enum(['super_admin', 'admin', 'customer']).optional(),
     status: z.enum(['active', 'blocked', 'pending']).optional(),
     sortBy: z.string().optional(),
     sortOrder: z.enum(['asc', 'desc']).optional(),

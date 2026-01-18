@@ -1,5 +1,5 @@
 // ===================================================================
-// MotionBoss LMS - Authentication Middleware
+// Mega E-Commerce Backend - Authentication Middleware
 // JWT Token verify করে user authenticate করার জন্য middleware
 // ===================================================================
 
@@ -19,7 +19,7 @@ declare global {
       user?: JwtPayload & {
         userId: string;
         email: string;
-        role: 'admin' | 'mentor' | 'student';
+        role: 'super_admin' | 'admin' | 'customer';
       };
     }
   }
@@ -58,7 +58,7 @@ export const authMiddleware = async (
     const decoded = jwt.verify(token, config.jwt.access_secret) as JwtPayload & {
       userId: string;
       email: string;
-      role: 'admin' | 'mentor' | 'student';
+      role: 'super_admin' | 'admin' | 'customer';
     };
 
     // ==================== 3. Check if User Exists ====================
@@ -94,7 +94,7 @@ export const authMiddleware = async (
  * @example
  * router.delete('/user/:id', authMiddleware, authorizeRoles('admin'), UserController.delete);
  */
-export const authorizeRoles = (...allowedRoles: ('admin' | 'mentor' | 'student')[]) => {
+export const authorizeRoles = (...allowedRoles: ('super_admin' | 'admin' | 'customer')[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     // User এর role allowed list এ আছে কিনা check করা
     if (!req.user || !allowedRoles.includes(req.user.role)) {
@@ -102,6 +102,26 @@ export const authorizeRoles = (...allowedRoles: ('admin' | 'mentor' | 'student')
     }
     next();
   };
+};
+
+/**
+ * adminOnly - Only super_admin and admin can access
+ */
+export const adminOnly = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user || !['super_admin', 'admin'].includes(req.user.role)) {
+    throw new AppError(403, 'Admin access required.');
+  }
+  next();
+};
+
+/**
+ * superAdminOnly - Only super_admin can access
+ */
+export const superAdminOnly = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user || req.user.role !== 'super_admin') {
+    throw new AppError(403, 'Super Admin access required.');
+  }
+  next();
 };
 
 /**
@@ -127,7 +147,7 @@ export const optionalAuth = async (
           const decoded = jwt.verify(token, config.jwt.access_secret) as JwtPayload & {
             userId: string;
             email: string;
-            role: 'admin' | 'mentor' | 'student';
+            role: 'super_admin' | 'admin' | 'customer';
           };
           req.user = decoded;
         } catch {

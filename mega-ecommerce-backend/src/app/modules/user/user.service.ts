@@ -266,21 +266,21 @@ const UserService = {
     active: number;
     blocked: number;
     pending: number;
-    buyers: number;
-    sellers: number;
+    customers: number;
     admins: number;
+    superAdmins: number;
   }> {
-    const [total, active, blocked, pending, buyers, sellers, admins] = await Promise.all([
+    const [total, active, blocked, pending, customers, admins, superAdmins] = await Promise.all([
       User.countDocuments({ isDeleted: false }),
       User.countDocuments({ status: 'active', isDeleted: false }),
       User.countDocuments({ status: 'blocked', isDeleted: false }),
       User.countDocuments({ status: 'pending', isDeleted: false }),
-      User.countDocuments({ role: 'buyer', isDeleted: false }),
-      User.countDocuments({ role: 'seller', isDeleted: false }),
+      User.countDocuments({ role: 'customer', isDeleted: false }),
       User.countDocuments({ role: 'admin', isDeleted: false }),
+      User.countDocuments({ role: 'super_admin', isDeleted: false }),
     ]);
 
-    return { total, active, blocked, pending, buyers, sellers, admins };
+    return { total, active, blocked, pending, customers, admins, superAdmins };
   },
 };
 

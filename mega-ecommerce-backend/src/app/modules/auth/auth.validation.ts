@@ -40,7 +40,7 @@ export const registerValidation = z.object({
 
     phone: z.string().optional(),
 
-    role: z.enum(['student', 'admin']).optional().default('student'),
+    role: z.enum(['customer', 'admin']).optional().default('customer'),
   }),
 });
 

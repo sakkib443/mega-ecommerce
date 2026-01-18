@@ -1,20 +1,17 @@
 // ===================================================================
-// ExtraWeb Backend - Category Controller
-// HTTP Request handling for Category CRUD with Hierarchical Support
+// Mega E-Commerce Backend - Category Controller
+// HTTP request handlers for Category operations
 // ===================================================================
 
 import { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import CategoryService from './category.service';
-import pick from '../../utils/pick';
-import { ICategoryFilters } from './category.interface';
 
 const CategoryController = {
-    // ==================== CREATE (Admin) ====================
+    // Create new category (Admin)
     createCategory: catchAsync(async (req: Request, res: Response) => {
         const category = await CategoryService.createCategory(req.body);
-
         sendResponse(res, {
             statusCode: 201,
             success: true,
@@ -23,11 +20,10 @@ const CategoryController = {
         });
     }),
 
-    // ==================== GET ALL (Admin) ====================
+    // Get all categories
     getAllCategories: catchAsync(async (req: Request, res: Response) => {
-        const filters = pick(req.query, ['searchTerm', 'status', 'type', 'isParent', 'parentCategory']) as ICategoryFilters & { type?: string; isParent?: string; parentCategory?: string };
-        const categories = await CategoryService.getAllCategories(filters);
-
+        const includeInactive = req.query.includeInactive === 'true';
+        const categories = await CategoryService.getAllCategories(includeInactive);
         sendResponse(res, {
             statusCode: 200,
             success: true,
@@ -36,24 +32,31 @@ const CategoryController = {
         });
     }),
 
-    // ==================== GET PARENT CATEGORIES ====================
-    getParentCategories: catchAsync(async (req: Request, res: Response) => {
-        const { type } = req.query;
-        const categories = await CategoryService.getParentCategories(type as string);
-
+    // Get category tree
+    getCategoryTree: catchAsync(async (req: Request, res: Response) => {
+        const tree = await CategoryService.getCategoryTree();
         sendResponse(res, {
             statusCode: 200,
             success: true,
-            message: 'Parent categories fetched successfully',
+            message: 'Category tree fetched successfully',
+            data: tree,
+        });
+    }),
+
+    // Get root categories
+    getRootCategories: catchAsync(async (req: Request, res: Response) => {
+        const categories = await CategoryService.getRootCategories();
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: 'Root categories fetched successfully',
             data: categories,
         });
     }),
 
-    // ==================== GET CHILD CATEGORIES ====================
+    // Get child categories
     getChildCategories: catchAsync(async (req: Request, res: Response) => {
-        const { parentId } = req.params;
-        const categories = await CategoryService.getChildCategories(parentId);
-
+        const categories = await CategoryService.getChildCategories(req.params.parentId);
         sendResponse(res, {
             statusCode: 200,
             success: true,
@@ -62,36 +65,9 @@ const CategoryController = {
         });
     }),
 
-    // ==================== GET HIERARCHICAL (Nested) ====================
-    getHierarchicalCategories: catchAsync(async (req: Request, res: Response) => {
-        const { type } = req.query;
-        const categories = await CategoryService.getHierarchicalCategories(type as string);
-
-        sendResponse(res, {
-            statusCode: 200,
-            success: true,
-            message: 'Hierarchical categories fetched successfully',
-            data: categories,
-        });
-    }),
-
-    // ==================== GET ACTIVE (Public) ====================
-    getActiveCategories: catchAsync(async (req: Request, res: Response) => {
-        const { type } = req.query;
-        const categories = await CategoryService.getActiveCategories(type as string);
-
-        sendResponse(res, {
-            statusCode: 200,
-            success: true,
-            message: 'Categories fetched successfully',
-            data: categories,
-        });
-    }),
-
-    // ==================== GET BY ID ====================
+    // Get category by ID
     getCategoryById: catchAsync(async (req: Request, res: Response) => {
         const category = await CategoryService.getCategoryById(req.params.id);
-
         sendResponse(res, {
             statusCode: 200,
             success: true,
@@ -100,10 +76,9 @@ const CategoryController = {
         });
     }),
 
-    // ==================== GET BY SLUG (Public) ====================
+    // Get category by slug
     getCategoryBySlug: catchAsync(async (req: Request, res: Response) => {
         const category = await CategoryService.getCategoryBySlug(req.params.slug);
-
         sendResponse(res, {
             statusCode: 200,
             success: true,
@@ -112,10 +87,20 @@ const CategoryController = {
         });
     }),
 
-    // ==================== UPDATE (Admin) ====================
+    // Get category with children
+    getCategoryWithChildren: catchAsync(async (req: Request, res: Response) => {
+        const category = await CategoryService.getCategoryWithChildren(req.params.id);
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: 'Category with children fetched successfully',
+            data: category,
+        });
+    }),
+
+    // Update category (Admin)
     updateCategory: catchAsync(async (req: Request, res: Response) => {
         const category = await CategoryService.updateCategory(req.params.id, req.body);
-
         sendResponse(res, {
             statusCode: 200,
             success: true,
@@ -124,17 +109,73 @@ const CategoryController = {
         });
     }),
 
-    // ==================== DELETE (Admin) ====================
+    // Delete category (Admin)
     deleteCategory: catchAsync(async (req: Request, res: Response) => {
         await CategoryService.deleteCategory(req.params.id);
-
         sendResponse(res, {
             statusCode: 200,
             success: true,
             message: 'Category deleted successfully',
+            data: null,
+        });
+    }),
+
+    // Get featured categories
+    getFeaturedCategories: catchAsync(async (req: Request, res: Response) => {
+        const limit = Number(req.query.limit) || 6;
+        const categories = await CategoryService.getFeaturedCategories(limit);
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: 'Featured categories fetched successfully',
+            data: categories,
+        });
+    }),
+
+    // Get menu categories
+    getMenuCategories: catchAsync(async (req: Request, res: Response) => {
+        const categories = await CategoryService.getMenuCategories();
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: 'Menu categories fetched successfully',
+            data: categories,
+        });
+    }),
+
+    // Get home categories
+    getHomeCategories: catchAsync(async (req: Request, res: Response) => {
+        const categories = await CategoryService.getHomeCategories();
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: 'Home categories fetched successfully',
+            data: categories,
+        });
+    }),
+
+    // Get category breadcrumbs
+    getCategoryBreadcrumbs: catchAsync(async (req: Request, res: Response) => {
+        const breadcrumbs = await CategoryService.getCategoryBreadcrumbs(req.params.id);
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: 'Breadcrumbs fetched successfully',
+            data: breadcrumbs,
+        });
+    }),
+
+    // Update category order (Admin)
+    updateCategoryOrder: catchAsync(async (req: Request, res: Response) => {
+        const { updates } = req.body;
+        await CategoryService.updateCategoryOrder(updates);
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: 'Category order updated successfully',
+            data: null,
         });
     }),
 };
 
 export default CategoryController;
-

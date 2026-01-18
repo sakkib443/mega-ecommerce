@@ -1,35 +1,47 @@
 // ===================================================================
-// ExtraWeb Backend - Category Interface
-// Category মডেলের TypeScript interface
+// Mega E-Commerce Backend - Category Interface
+// TypeScript interfaces for Category module
 // ===================================================================
 
-import { Types } from 'mongoose';
+import { Types, Document } from 'mongoose';
 
-/**
- * ICategory - Category data structure
- * Website/Software এর categories (Ecommerce, Blog, LMS etc)
- */
-export interface ICategory {
-    _id?: Types.ObjectId;
-    name: string;           // Category name (e.g., "Ecommerce")
-    slug: string;           // URL-friendly slug (e.g., "ecommerce")
-    description?: string;   // Category description
-    icon?: string;          // Icon class or URL
-    image?: string;         // Category thumbnail image
-    parentCategory?: Types.ObjectId | ICategory | null;  // Parent category reference
+export interface ICategory extends Document {
+    _id: Types.ObjectId;
+    name: string;
+    slug: string;
+    description?: string;
+    icon?: string;
+    image?: string;
+    banner?: string;
+
+    // Parent-Child Relationship
+    parentCategory: Types.ObjectId | null;
+    level: number;          // 0 = root, 1 = child, 2 = grandchild
+    ancestors: Types.ObjectId[];  // All parent IDs for easy querying
+
+    // Status
     status: 'active' | 'inactive';
-    type: 'course' | 'website' | 'software'; // Type of category
-    productCount: number;   // Total products in this category
-    order: number;          // Display order
-    isParent: boolean;      // Is this a parent category?
-    createdAt?: Date;
-    updatedAt?: Date;
+    isActive: boolean;
+    isFeatured: boolean;
+
+    // Display
+    order: number;
+    showInMenu: boolean;
+    showInHome: boolean;
+
+    // Statistics
+    productCount: number;
+
+    // SEO
+    metaTitle?: string;
+    metaDescription?: string;
+    metaKeywords?: string[];
+
+    // Timestamps
+    createdAt: Date;
+    updatedAt: Date;
 }
 
-/**
- * ICategoryFilters - Query filters for categories
- */
-export interface ICategoryFilters {
-    searchTerm?: string;
-    status?: 'active' | 'inactive';
+export interface ICategoryWithChildren extends ICategory {
+    children?: ICategoryWithChildren[];
 }

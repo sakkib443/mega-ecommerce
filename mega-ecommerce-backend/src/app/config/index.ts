@@ -1,5 +1,5 @@
 // ===================================================================
-// ejobsit Backend - Configuration File
+// Mega E-Commerce Backend - Configuration File
 // কনফিগারেশন ফাইল - সব environment variables এখানে manage হবে
 // ===================================================================
 
@@ -16,9 +16,13 @@ export default {
   env: process.env.NODE_ENV || 'development',
   port: process.env.PORT || 5000,
 
+  // ==================== URLs ====================
+  backend_url: process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`,
+  frontend_url: process.env.FRONTEND_URL || 'http://localhost:3000',
+
   // ==================== Database Configuration ====================
   // ডাটাবেস কনফিগারেশন (MongoDB)
-  database_url: process.env.DATABASE_URL || 'mongodb://localhost:27017/ejobsit',
+  database_url: process.env.DATABASE_URL || 'mongodb://localhost:27017/mega-ecommerce',
 
   // ==================== JWT Configuration ====================
   // JWT টোকেন কনফিগারেশন (Authentication)
@@ -48,12 +52,8 @@ export default {
     port: Number(process.env.EMAIL_PORT) || 587,
     user: process.env.EMAIL_USER || '',
     pass: process.env.EMAIL_PASS || '',
-    from: process.env.EMAIL_FROM || 'noreply@ejobsit.com',
+    from: process.env.EMAIL_FROM || 'noreply@megaecommerce.com',
   },
-
-  // ==================== Frontend URL ====================
-  // Frontend URL (CORS এবং password reset link এর জন্য)
-  frontend_url: process.env.FRONTEND_URL || 'http://localhost:3000',
 
   // ==================== Pagination Defaults ====================
   // ডিফল্ট পেজিনেশন সেটিংস
@@ -63,13 +63,31 @@ export default {
     max_limit: 100,
   },
 
+  // ==================== SSLCommerz Payment Configuration ====================
+  // SSLCommerz পেমেন্ট গেটওয়ে সেটিংস
+  sslcommerz: {
+    store_id: process.env.SSL_STORE_ID || 'testbox',
+    store_password: process.env.SSL_STORE_PASSWORD || 'qwerty',
+    is_live: process.env.SSL_IS_LIVE === 'true',
+  },
+
   // ==================== bKash Payment Configuration ====================
   // বিকাশ পেমেন্ট গেটওয়ে সেটিংস
   bkash: {
-    app_key: process.env.BKASH_APP_KEY || 'demo_app_key',
-    app_secret: process.env.BKASH_APP_SECRET || 'demo_app_secret',
-    username: process.env.BKASH_USERNAME || 'demo_username',
-    password: process.env.BKASH_PASSWORD || 'demo_password',
-    base_url: process.env.BKASH_BASE_URL || 'https://tokenized.sandbox.bka.sh/v1.2.0-beta',
+    app_key: process.env.BKASH_APP_KEY || '',
+    app_secret: process.env.BKASH_APP_SECRET || '',
+    username: process.env.BKASH_USERNAME || '',
+    password: process.env.BKASH_PASSWORD || '',
+    is_live: process.env.BKASH_IS_LIVE === 'true',
+  },
+
+  // ==================== Nagad Payment Configuration ====================
+  // নগদ পেমেন্ট গেটওয়ে সেটিংস
+  nagad: {
+    merchant_id: process.env.NAGAD_MERCHANT_ID || '',
+    public_key: process.env.NAGAD_PUBLIC_KEY || '',
+    private_key: process.env.NAGAD_PRIVATE_KEY || '',
+    is_live: process.env.NAGAD_IS_LIVE === 'true',
   },
 };
+

@@ -1,5 +1,5 @@
 // ===================================================================
-// MotionBoss LMS - User Model
+// Mega E-Commerce Backend - User Model
 // MongoDB User Schema with Mongoose
 // ===================================================================
 
@@ -8,13 +8,52 @@ import bcrypt from 'bcryptjs';
 import config from '../../config';
 import { IUser, IUserMethods, UserModel } from './user.interface';
 
-/**
- * User Schema Definition
- * User collection এর structure এখানে define করা হয়েছে
- */
+// Address Sub-Schema
+const addressSchema = new Schema({
+  label: {
+    type: String,
+    required: true,
+    default: 'Home',
+  },
+  fullName: {
+    type: String,
+    required: true,
+  },
+  phone: {
+    type: String,
+    required: true,
+  },
+  street: {
+    type: String,
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+  state: {
+    type: String,
+    required: true,
+  },
+  zipCode: {
+    type: String,
+    required: true,
+  },
+  country: {
+    type: String,
+    required: true,
+    default: 'Bangladesh',
+  },
+  isDefault: {
+    type: Boolean,
+    default: false,
+  },
+}, { _id: true });
+
+// User Schema
 const userSchema = new Schema<IUser, UserModel, IUserMethods>(
   {
-    // ==================== Basic Info ====================
+    // Auth
     email: {
       type: String,
       required: [true, 'Email is required'],
@@ -27,8 +66,10 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       type: String,
       required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
-      select: false, // Password default এ query result এ আসবে না
+      select: false,
     },
+
+    // Basic Info
     firstName: {
       type: String,
       required: [true, 'First name is required'],
@@ -48,42 +89,13 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
     },
     avatar: {
       type: String,
-      default: '', // Default avatar URL রাখা যায়
+      default: '',
     },
 
-    // ==================== Extended Profile Fields ====================
+    // Extended Profile
     bio: {
       type: String,
       maxlength: [500, 'Bio cannot exceed 500 characters'],
-      default: '',
-    },
-    address: {
-      type: String,
-      maxlength: [200, 'Address cannot exceed 200 characters'],
-      default: '',
-    },
-    city: {
-      type: String,
-      maxlength: [100, 'City cannot exceed 100 characters'],
-      default: '',
-    },
-    country: {
-      type: String,
-      maxlength: [100, 'Country cannot exceed 100 characters'],
-      default: '',
-    },
-    website: {
-      type: String,
-      default: '',
-    },
-    company: {
-      type: String,
-      maxlength: [100, 'Company name cannot exceed 100 characters'],
-      default: '',
-    },
-    jobTitle: {
-      type: String,
-      maxlength: [100, 'Job title cannot exceed 100 characters'],
       default: '',
     },
     dateOfBirth: {
@@ -91,32 +103,35 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
     },
     gender: {
       type: String,
-      enum: {
-        values: ['male', 'female', 'other', ''],
-        message: '{VALUE} is not a valid gender',
-      },
+      enum: ['male', 'female', 'other', ''],
       default: '',
     },
+
+    // Addresses
+    addresses: {
+      type: [addressSchema],
+      default: [],
+    },
+    defaultAddress: {
+      type: Schema.Types.ObjectId,
+    },
+
+    // Social
     socialLinks: {
       facebook: { type: String, default: '' },
       twitter: { type: String, default: '' },
-      linkedin: { type: String, default: '' },
-      github: { type: String, default: '' },
       instagram: { type: String, default: '' },
-    },
-    skills: {
-      type: [String],
-      default: [],
+      linkedin: { type: String, default: '' },
     },
 
-    // ==================== Role & Status ====================
+    // Role & Status
     role: {
       type: String,
       enum: {
-        values: ['admin', 'mentor', 'student'],
+        values: ['super_admin', 'admin', 'customer'],
         message: '{VALUE} is not a valid role',
       },
-      default: 'student',
+      default: 'customer',
     },
     status: {
       type: String,
@@ -124,7 +139,7 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
         values: ['active', 'blocked', 'pending'],
         message: '{VALUE} is not a valid status',
       },
-      default: 'pending',
+      default: 'active',
     },
     isEmailVerified: {
       type: Boolean,
@@ -135,8 +150,8 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       default: false,
     },
 
-    // ==================== Statistics ====================
-    totalPurchases: {
+    // Statistics
+    totalOrders: {
       type: Number,
       default: 0,
     },
@@ -144,40 +159,25 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       type: Number,
       default: 0,
     },
-    totalCoursesEnrolled: {
-      type: Number,
-      default: 0,
-    },
-    totalCoursesCompleted: {
+    totalWishlistItems: {
       type: Number,
       default: 0,
     },
 
-    // ==================== LMS Specific ====================
-    enrolledCourses: [{
-      type: Schema.Types.ObjectId,
-      ref: 'Course',
-    }],
-    completedCourses: [{
-      type: Schema.Types.ObjectId,
-      ref: 'Course',
-    }],
-    certificates: [{
-      type: Schema.Types.ObjectId,
-      ref: 'Certificate',
-    }],
-
-    // ==================== Password Reset ====================
+    // Password Reset
     passwordResetToken: String,
     passwordResetExpires: Date,
     passwordChangedAt: Date,
+
+    // Last Login
+    lastLoginAt: Date,
   },
   {
-    timestamps: true, // createdAt, updatedAt auto add হবে
+    timestamps: true,
     toJSON: {
       virtuals: true,
       transform: function (doc, ret) {
-        delete ret.password; // JSON এ password থাকবে না
+        delete ret.password;
         delete ret.__v;
         return ret;
       },
@@ -186,29 +186,24 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
 );
 
 // ==================== Indexes ====================
-// Search performance বাড়ানোর জন্য indexes
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1, status: 1 });
 userSchema.index({ firstName: 'text', lastName: 'text', email: 'text' });
 
-// ==================== Virtual Fields ====================
-// fullName virtual field - firstName + lastName
+// ==================== Virtuals ====================
 userSchema.virtual('fullName').get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
 
 // ==================== Pre-Save Middleware ====================
-// Password hash করা save এর আগে
 userSchema.pre('save', async function (next) {
-  // Password modify হলেই hash করবো
+  // Hash password if modified
   if (!this.isModified('password')) {
     return next();
   }
 
-  // Password hash করা
   this.password = await bcrypt.hash(this.password, config.bcrypt_salt_rounds);
 
-  // Password change time update
   if (!this.isNew) {
     this.passwordChangedAt = new Date(Date.now() - 1000);
   }
@@ -216,7 +211,7 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// Deleted users কে query থেকে বাদ দেওয়া
+// Filter out deleted users
 userSchema.pre('find', function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
@@ -228,37 +223,26 @@ userSchema.pre('findOne', function (next) {
 });
 
 // ==================== Instance Methods ====================
-// Password compare করার method
-userSchema.methods.comparePassword = async function (
-  candidatePassword: string
-): Promise<boolean> {
+userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// JWT issue এর পর password change হয়েছে কিনা
-userSchema.methods.isPasswordChangedAfterJwtIssued = function (
-  jwtTimestamp: number
-): boolean {
+userSchema.methods.isPasswordChangedAfterJwtIssued = function (jwtTimestamp: number): boolean {
   if (this.passwordChangedAt) {
-    const changedTimestamp = Math.floor(
-      this.passwordChangedAt.getTime() / 1000
-    );
+    const changedTimestamp = Math.floor(this.passwordChangedAt.getTime() / 1000);
     return jwtTimestamp < changedTimestamp;
   }
   return false;
 };
 
 // ==================== Static Methods ====================
-// Email দিয়ে user খুঁজে বের করা (password সহ)
 userSchema.statics.findByEmail = async function (email: string) {
   return await this.findOne({ email }).select('+password');
 };
 
-// User exist করে কিনা
 userSchema.statics.isUserExists = async function (email: string) {
   const user = await this.findOne({ email });
   return !!user;
 };
 
-// ==================== Export Model ====================
 export const User = model<IUser, UserModel>('User', userSchema);

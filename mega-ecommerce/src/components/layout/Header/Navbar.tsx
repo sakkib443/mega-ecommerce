@@ -17,7 +17,7 @@ const Navbar: React.FC = () => {
         { label: 'Shop Now', href: '/shop' },
         { label: 'Special Offers', href: '/offers' },
         { label: 'Our Blog', href: '/blog' },
-        { label: 'Support', href: '/contact' },
+        { label: 'Contact Us', href: '/contact' },
     ];
 
     return (
@@ -48,10 +48,10 @@ const Navbar: React.FC = () => {
                     </div>
 
                     {/* Right Side: Special Deal Button */}
-                    <div className='hidden lg:flex items-center gap-2 text-[var(--color-primary)] font-bold text-sm animate-pulse cursor-pointer'>
+                    <Link href="/offers" className='hidden lg:flex items-center gap-2 text-[var(--color-primary)] font-bold text-sm animate-pulse cursor-pointer group'>
                         <FiZap size={18} />
-                        <span>BLACK FRIDAY: UP TO 80% OFF!</span>
-                    </div>
+                        <span className="group-hover:underline">BLACK FRIDAY: UP TO 80% OFF!</span>
+                    </Link>
 
                     {/* Mobile Menu Button */}
                     <button

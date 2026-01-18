@@ -1,118 +1,100 @@
 // ===================================================================
-// MotionBoss LMS - User Interface
-// User মডেলের TypeScript interface definitions
+// Mega E-Commerce Backend - User Interface
+// TypeScript interfaces for User module
 // ===================================================================
 
-import { Model, Types } from 'mongoose';
+import { Types, Model, Document } from 'mongoose';
 
-/**
- * User Role Types
- * admin - System administrator with full access
- * mentor - Limited admin access (create/update only, no delete, no analytics)
- * student - Learner who enrolls in courses and purchases products
- */
-export type TUserRole = 'admin' | 'mentor' | 'student';
+// User Social Links
+export interface IUserSocialLinks {
+  facebook?: string;
+  twitter?: string;
+  instagram?: string;
+  linkedin?: string;
+}
 
-/**
- * User Status Types
- * active - Normal active user
- * blocked - Blocked by admin
- * pending - Awaiting email verification
- */
-export type TUserStatus = 'active' | 'blocked' | 'pending';
-
-/**
- * IUser - Main User Interface
- * Database এ যে format এ user data save হবে
- */
-export interface IUser {
+// User Address
+export interface IUserAddress {
   _id?: Types.ObjectId;
+  label: string;           // Home, Office, etc.
+  fullName: string;
+  phone: string;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  isDefault: boolean;
+}
+
+// Main User Interface
+export interface IUser extends Document {
+  _id: Types.ObjectId;
+
+  // Auth
   email: string;
   password: string;
+
+  // Basic Info
   firstName: string;
   lastName: string;
-  phone: string;  // Mandatory phone number
+  phone?: string;
   avatar?: string;
-  role: TUserRole;
-  status: TUserStatus;
+
+  // Extended Profile
+  bio?: string;
+  dateOfBirth?: Date;
+  gender?: 'male' | 'female' | 'other' | '';
+
+  // Addresses
+  addresses: IUserAddress[];
+  defaultAddress?: Types.ObjectId;
+
+  // Social
+  socialLinks?: IUserSocialLinks;
+
+  // Role & Status
+  role: 'super_admin' | 'admin' | 'customer';
+  status: 'active' | 'blocked' | 'pending';
   isEmailVerified: boolean;
   isDeleted: boolean;
 
-  // ==================== Extended Profile Fields ====================
-  bio?: string;           // Short biography
-  address?: string;       // Street address
-  city?: string;          // City name
-  country?: string;       // Country name
-  website?: string;       // Personal/company website
-  company?: string;       // Company/organization name
-  jobTitle?: string;      // Job designation
-  dateOfBirth?: Date;     // Birth date
-  gender?: 'male' | 'female' | 'other';
-
-  // Social media links
-  socialLinks?: {
-    facebook?: string;
-    twitter?: string;
-    linkedin?: string;
-    github?: string;
-    instagram?: string;
-  };
-
-  // Skills/expertise
-  skills?: string[];
-
-  // LMS Specific Fields
-  enrolledCourses?: Types.ObjectId[];   // Courses enrolled
-  completedCourses?: Types.ObjectId[];  // Courses completed
-  certificates?: Types.ObjectId[];      // Earned certificates
-
-  // Statistics - Auto updated
-  totalPurchases: number;
+  // Statistics
+  totalOrders: number;
   totalSpent: number;
-  totalCoursesEnrolled: number;         // Total courses enrolled
-  totalCoursesCompleted: number;        // Total courses completed
+  totalWishlistItems: number;
 
-  // Password reset fields
+  // Password Reset
   passwordResetToken?: string;
   passwordResetExpires?: Date;
   passwordChangedAt?: Date;
 
   // Timestamps
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  lastLoginAt?: Date;
 }
 
-/**
- * IUserMethods - Instance Methods
- * User document এর উপর যে methods call করা যাবে
- */
+// User Instance Methods
 export interface IUserMethods {
-  // Password compare করার জন্য method
   comparePassword(candidatePassword: string): Promise<boolean>;
-
-  // JWT token তৈরি করার পর password change হয়েছে কিনা check
   isPasswordChangedAfterJwtIssued(jwtTimestamp: number): boolean;
 }
 
-/**
- * UserModel - Static Methods
- * User.method() এভাবে call করা যাবে এমন methods
- */
-export interface UserModel extends Model<IUser, object, IUserMethods> {
-  // Email দিয়ে user খুঁজে বের করা (password সহ)
-  findByEmail(email: string): Promise<IUser & IUserMethods>;
-
-  // User exist করে কিনা check
+// User Model Type
+export interface UserModel extends Model<IUser, {}, IUserMethods> {
+  findByEmail(email: string): Promise<IUser | null>;
   isUserExists(email: string): Promise<boolean>;
 }
 
-/**
- * IUserFilters - Query Filters
- * User list filter করার জন্য
- */
+// Type aliases for backward compatibility
+export type TUserRole = 'super_admin' | 'admin' | 'customer';
+export type TUserStatus = 'active' | 'blocked' | 'pending';
+
+// User Filters Interface
 export interface IUserFilters {
   searchTerm?: string;
-  email?: string;
   role?: TUserRole;
   status?: TUserStatus;
+  isEmailVerified?: boolean;
 }

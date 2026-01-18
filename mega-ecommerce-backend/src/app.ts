@@ -1,7 +1,6 @@
 // ===================================================================
-// ejobs it LMS - Main Application File
+// Mega E-Commerce Backend - Main Application File
 // Express app setup with all routes and middleware
-// মূল এপ্লিকেশন ফাইল - সব routes এবং middleware এখানে connect হয়েছে
 // ===================================================================
 
 import cors from 'cors';
@@ -17,28 +16,22 @@ import config from './app/config';
 import { AuthRoutes } from './app/modules/auth/auth.routes';
 import { UserRoutes } from './app/modules/user/user.routes';
 import { CategoryRoutes } from './app/modules/category/category.routes';
-import { PlatformRoutes } from './app/modules/platform/platform.routes';
-import { WebsiteRoutes } from './app/modules/website/website.routes';
-import { SoftwareRoutes } from './app/modules/software/software.routes';
+import { ProductRoutes } from './app/modules/product/product.routes';
 import { CartRoutes } from './app/modules/cart/cart.module';
 import { WishlistRoutes } from './app/modules/wishlist/wishlist.module';
 import { OrderRoutes } from './app/modules/order/order.module';
 import { ReviewRoutes } from './app/modules/review/review.module';
-import { DownloadRoutes } from './app/modules/download/download.module';
-import { BkashRoutes } from './app/modules/bkash/bkash.module';
-import { AnalyticsRoutes } from './app/modules/analytics/analytics.module';
-import { uploadRoutes } from './app/modules/upload/upload.routes';
-import { CourseRoutes } from './app/modules/course/course.routes';
-import { LessonRoutes } from './app/modules/lesson/lesson.routes';
-import { ModuleRoutes } from './app/modules/module/module.routes';
-import { EnrollmentRoutes } from './app/modules/enrollment/enrollment.routes';
 import { NotificationRoutes } from './app/modules/notification/notification.module';
-import { DesignRoutes } from './app/modules/design/design.routes';
-import { StatsRoutes } from './app/modules/stats/stats.routes';
 import { CouponRoutes } from './app/modules/coupon/coupon.routes';
+import { PaymentRoutes } from './app/modules/payment/payment.module';
+import { ShippingRoutes } from './app/modules/shipping/shipping.module';
+import { InvoiceRoutes } from './app/modules/invoice/invoice.module';
+import { uploadRoutes } from './app/modules/upload/upload.routes';
 import { SiteContentRoutes } from './app/modules/siteContent/siteContent.routes';
 import { PageContentRoutes } from './app/modules/pageContent/pageContent.routes';
 import { BlogRoutes } from './app/modules/blog/blog.routes';
+import { StatsRoutes } from './app/modules/stats/stats.routes';
+import { AnalyticsRoutes } from './app/modules/analytics/analytics.module';
 
 // ==================== App Initialization ====================
 const app: Application = express();
@@ -57,8 +50,7 @@ app.use(cookieParser());
 const allowedOrigins = [
   config.frontend_url,
   'http://localhost:3000',
-  'https://ejobsit.vercel.app',
-  'https://ejobs-it.vercel.app',
+  'https://mega-ecommerce.vercel.app',
 ].filter(Boolean);
 
 app.use(
@@ -83,10 +75,22 @@ app.use(
 app.get('/', (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
-    message: '🚀 ejobs it LMS API Server is running!',
-    version: '1.0.0',
+    message: '🛒 Mega E-Commerce API Server is running!',
+    version: '2.0.0',
     environment: config.env,
     timestamp: new Date().toISOString(),
+    features: [
+      'Product Management',
+      'Category Hierarchy',
+      'Cart & Wishlist',
+      'Order Management',
+      'Payment Gateway (SSLCommerz, bKash, COD)',
+      'Shipping & Tracking',
+      'Reviews & Ratings',
+      'Invoice Generation',
+      'Email Notifications',
+      'Analytics Dashboard',
+    ],
   });
 });
 
@@ -100,6 +104,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 // ==================== API Routes ====================
+
 // Authentication routes (public)
 app.use('/api/auth', AuthRoutes);
 
@@ -109,26 +114,8 @@ app.use('/api/users', UserRoutes);
 // Category routes (public + admin)
 app.use('/api/categories', CategoryRoutes);
 
-// Platform routes (public + admin)
-app.use('/api/platforms', PlatformRoutes);
-
-// Website product routes (main marketplace)
-app.use('/api/websites', WebsiteRoutes);
-
-// Software product routes (scripts & plugins marketplace)
-app.use('/api/software', SoftwareRoutes);
-
-// Course routes (LMS - public + admin)
-app.use('/api/courses', CourseRoutes);
-
-// Module routes (LMS - public + admin)
-app.use('/api/modules', ModuleRoutes);
-
-// Lesson routes (LMS - public + admin)
-app.use('/api/lessons', LessonRoutes);
-
-// Enrollment routes (LMS - authenticated)
-app.use('/api/enrollments', EnrollmentRoutes);
+// Product routes (main e-commerce)
+app.use('/api/products', ProductRoutes);
 
 // Cart routes (authenticated)
 app.use('/api/cart', CartRoutes);
@@ -142,29 +129,23 @@ app.use('/api/orders', OrderRoutes);
 // Review routes (public + authenticated)
 app.use('/api/reviews', ReviewRoutes);
 
-// Download routes (authenticated)
-app.use('/api/downloads', DownloadRoutes);
+// Payment routes (authenticated + gateway callbacks)
+app.use('/api/payments', PaymentRoutes);
 
-// bKash Payment routes (authenticated)
-app.use('/api/bkash', BkashRoutes);
+// Shipping routes (public + admin)
+app.use('/api/shipping', ShippingRoutes);
 
-// Analytics routes (admin only)
-app.use('/api/analytics', AnalyticsRoutes);
+// Invoice routes (authenticated)
+app.use('/api/invoices', InvoiceRoutes);
+
+// Notification routes (authenticated + admin)
+app.use('/api/notifications', NotificationRoutes);
+
+// Coupon routes (public validate + admin CRUD)
+app.use('/api/coupons', CouponRoutes);
 
 // Upload routes (authenticated)
 app.use('/api/upload', uploadRoutes);
-
-// Notification routes (admin only)
-app.use('/api/notifications', NotificationRoutes);
-
-// Design routes (website design/content management)
-app.use('/api/design', DesignRoutes);
-
-// Stats routes (real-time database statistics)
-app.use('/api/stats', StatsRoutes);
-
-// Coupon routes (discount codes)
-app.use('/api/coupons', CouponRoutes);
 
 // Site Content routes (editable website content)
 app.use('/api/site-content', SiteContentRoutes);
@@ -174,6 +155,12 @@ app.use('/api/page-content', PageContentRoutes);
 
 // Blog routes (blog posts and comments)
 app.use('/api/blogs', BlogRoutes);
+
+// Stats routes (real-time database statistics)
+app.use('/api/stats', StatsRoutes);
+
+// Analytics routes (admin only)
+app.use('/api/analytics', AnalyticsRoutes);
 
 // ==================== Error Handling ====================
 // 404 Not Found handler (must be after all routes)

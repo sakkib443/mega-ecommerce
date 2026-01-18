@@ -1,6 +1,6 @@
 // ===================================================================
-// MotionBoss LMS - Analytics & Reports Module
-// Dashboard Analytics, Revenue Reports, LMS Stats
+// Mega E-Commerce Backend - Analytics & Reports Module
+// Dashboard Analytics, Revenue Reports, Product Stats
 // ===================================================================
 
 import { Request, Response } from 'express';
@@ -9,85 +9,71 @@ import sendResponse from '../../utils/sendResponse';
 import express from 'express';
 import { authMiddleware, authorizeRoles } from '../../middlewares/auth';
 import { Order } from '../order/order.module';
-import { BkashPayment } from '../bkash/bkash.module';
 import { User } from '../user/user.model';
-import { Website } from '../website/website.model';
-import { Course } from '../course/course.model';
-import { Lesson } from '../lesson/lesson.model';
-import { Enrollment } from '../enrollment/enrollment.model';
+import { Product } from '../product/product.model';
+import { Category } from '../category/category.model';
+import { Review } from '../review/review.module';
 
 // ==================== SERVICE ====================
 const AnalyticsService = {
     /**
      * Dashboard Summary - Admin dashboard এর জন্য সব stats একসাথে
-     * LMS + Marketplace data combined
      */
     async getDashboardSummary(): Promise<{
         // User Stats
         totalUsers: number;
-        totalStudents: number;
+        totalCustomers: number;
         newUsersThisMonth: number;
-        // Course Stats
-        totalCourses: number;
-        publishedCourses: number;
-        totalLessons: number;
-        // Enrollment Stats
-        totalEnrollments: number;
-        activeEnrollments: number;
-        completedEnrollments: number;
-        enrollmentsThisMonth: number;
         // Product Stats
-        totalWebsites: number;
-        totalSoftware: number;
-        // Order & Revenue Stats
+        totalProducts: number;
+        activeProducts: number;
+        outOfStockProducts: number;
+        lowStockProducts: number;
+        // Category Stats
+        totalCategories: number;
+        // Order Stats
         totalOrders: number;
         todayOrders: number;
         pendingOrders: number;
-        completedOrders: number;
+        processingOrders: number;
+        shippedOrders: number;
+        deliveredOrders: number;
+        cancelledOrders: number;
+        // Revenue Stats
         totalRevenue: number;
         todayRevenue: number;
         monthlyRevenue: number;
-        // Category Stats
-        totalCategories: number;
-        // Engagement Stats
-        totalLikes: number;
+        // Review Stats
+        totalReviews: number;
+        avgRating: number;
     }> {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-        // Import dynamically to avoid circular dependencies
-        const { Software } = await import('../software/software.model');
-        const { Category } = await import('../category/category.model');
-
         const [
             // User counts
             totalUsers,
-            totalStudents,
+            totalCustomers,
             newUsersThisMonth,
-            // Course counts
-            totalCourses,
-            publishedCourses,
-            totalLessons,
-            // Enrollment counts
-            totalEnrollments,
-            activeEnrollments,
-            completedEnrollments,
-            enrollmentsThisMonth,
             // Product counts
-            totalWebsites,
-            totalSoftware,
+            totalProducts,
+            activeProducts,
+            outOfStockProducts,
+            lowStockProducts,
             // Category count
             totalCategories,
             // Order counts
             totalOrders,
             todayOrders,
             pendingOrders,
-            completedOrders,
-            // Engagement (Sum of likeCount)
-            websiteLikes,
-            softwareLikes,
-            courseLikes,
+            processingOrders,
+            shippedOrders,
+            deliveredOrders,
+            cancelledOrders,
+            // Review stats
+            totalReviews,
+            avgRatingResult,
             // Revenue aggregations
             totalRevenueResult,
             todayRevenueResult,
@@ -95,124 +81,120 @@ const AnalyticsService = {
         ] = await Promise.all([
             // User queries
             User.countDocuments({ isDeleted: false }),
-            User.countDocuments({ role: 'student', isDeleted: false }),
+            User.countDocuments({ role: 'customer', isDeleted: false }),
             User.countDocuments({ createdAt: { $gte: firstDayOfMonth }, isDeleted: false }),
-            // Course queries
-            Course.countDocuments({}),
-            Course.countDocuments({ status: 'published' }),
-            Lesson.countDocuments({ isPublished: true }),
-            // Enrollment queries
-            Enrollment.countDocuments({}),
-            Enrollment.countDocuments({ status: 'active' }),
-            Enrollment.countDocuments({ status: 'completed' }),
-            Enrollment.countDocuments({ enrolledAt: { $gte: firstDayOfMonth } }),
             // Product queries
-            Website.countDocuments({ isDeleted: false }),
-            Software.countDocuments({ isDeleted: false }),
+            Product.countDocuments({}),
+            Product.countDocuments({ status: 'active' }),
+            Product.countDocuments({ quantity: 0, trackQuantity: true }),
+            Product.countDocuments({
+                $expr: {
+                    $and: [
+                        { $eq: ['$trackQuantity', true] },
+                        { $gt: ['$quantity', 0] },
+                        { $lte: ['$quantity', '$lowStockThreshold'] },
+                    ],
+                },
+            }),
             // Category query
-            Category.countDocuments({}),
+            Category.countDocuments({ status: 'active' }),
             // Order queries
             Order.countDocuments(),
-            Order.countDocuments({ orderDate: { $gte: today } }),
-            Order.countDocuments({ paymentStatus: 'pending' }),
-            Order.countDocuments({ paymentStatus: 'completed' }),
-            // Engagement (Sum of likeCount)
-            Website.aggregate([{ $group: { _id: null, total: { $sum: '$likeCount' } } }]),
-            Software.aggregate([{ $group: { _id: null, total: { $sum: '$likeCount' } } }]),
-            Course.aggregate([{ $group: { _id: null, total: { $sum: '$likeCount' } } }]),
+            Order.countDocuments({ createdAt: { $gte: today } }),
+            Order.countDocuments({ status: 'pending' }),
+            Order.countDocuments({ status: 'processing' }),
+            Order.countDocuments({ status: 'shipped' }),
+            Order.countDocuments({ status: 'delivered' }),
+            Order.countDocuments({ status: 'cancelled' }),
+            // Review queries
+            Review.countDocuments({ status: 'approved' }),
+            Review.aggregate([
+                { $match: { status: 'approved' } },
+                { $group: { _id: null, avg: { $avg: '$rating' } } },
+            ]),
             // Revenue aggregations
             Order.aggregate([
-                { $match: { paymentStatus: 'completed' } },
-                { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+                { $match: { status: { $nin: ['cancelled', 'returned'] } } },
+                { $group: { _id: null, total: { $sum: '$total' } } },
             ]),
             Order.aggregate([
-                { $match: { paymentStatus: 'completed', orderDate: { $gte: today } } },
-                { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+                { $match: { createdAt: { $gte: today }, status: { $nin: ['cancelled', 'returned'] } } },
+                { $group: { _id: null, total: { $sum: '$total' } } },
             ]),
             Order.aggregate([
-                { $match: { paymentStatus: 'completed', orderDate: { $gte: firstDayOfMonth } } },
-                { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+                { $match: { createdAt: { $gte: firstDayOfMonth }, status: { $nin: ['cancelled', 'returned'] } } },
+                { $group: { _id: null, total: { $sum: '$total' } } },
             ]),
         ]);
 
         return {
             // User Stats
             totalUsers,
-            totalStudents,
+            totalCustomers,
             newUsersThisMonth,
-            // Course Stats
-            totalCourses,
-            publishedCourses,
-            totalLessons,
-            // Enrollment Stats
-            totalEnrollments,
-            activeEnrollments,
-            completedEnrollments,
-            enrollmentsThisMonth,
             // Product Stats
-            totalWebsites,
-            totalSoftware,
-            // Order & Revenue Stats
+            totalProducts,
+            activeProducts,
+            outOfStockProducts,
+            lowStockProducts,
+            // Category Stats
+            totalCategories,
+            // Order Stats
             totalOrders,
             todayOrders,
             pendingOrders,
-            completedOrders,
+            processingOrders,
+            shippedOrders,
+            deliveredOrders,
+            cancelledOrders,
+            // Revenue Stats
             totalRevenue: totalRevenueResult[0]?.total || 0,
             todayRevenue: todayRevenueResult[0]?.total || 0,
             monthlyRevenue: monthlyRevenueResult[0]?.total || 0,
-            // Category Stats
-            totalCategories,
-            // Engagement
-            totalLikes: (websiteLikes[0]?.total || 0) + (softwareLikes[0]?.total || 0) + (courseLikes[0]?.total || 0),
+            // Review Stats
+            totalReviews,
+            avgRating: avgRatingResult[0]?.avg ? Math.round(avgRatingResult[0].avg * 10) / 10 : 0,
         };
     },
 
     /**
-     * Public Statistics - Home page এর জন্য public stats (no auth required)
+     * Public Statistics - Home page এর জন্য public stats
      */
     async getPublicStatistics(): Promise<{
-        totalWebsites: number;
-        totalSoftware: number;
+        totalProducts: number;
         totalCustomers: number;
-        totalDownloads: number;
+        totalOrders: number;
         averageRating: number;
         totalReviews: number;
     }> {
-        // Import Software model dynamically to avoid circular dependency
-        const { Software } = await import('../software/software.model');
-        const { Review } = await import('../review/review.module');
-
         const [
-            totalWebsites,
-            totalSoftware,
+            totalProducts,
             totalCustomers,
-            totalDownloads,
+            totalOrders,
             ratingResult,
             totalReviews,
         ] = await Promise.all([
-            Website.countDocuments({ isDeleted: false }),
-            Software.countDocuments({ isDeleted: false }),
-            User.countDocuments({ isDeleted: false }),
-            Order.countDocuments({ paymentStatus: 'completed' }),
-            Website.aggregate([
-                { $match: { isDeleted: false, rating: { $gt: 0 } } },
+            Product.countDocuments({ status: 'active' }),
+            User.countDocuments({ role: 'customer', isDeleted: false }),
+            Order.countDocuments({ status: 'delivered' }),
+            Review.aggregate([
+                { $match: { status: 'approved' } },
                 { $group: { _id: null, avg: { $avg: '$rating' } } }
             ]),
-            Review ? Review.countDocuments() : Promise.resolve(0),
+            Review.countDocuments({ status: 'approved' }),
         ]);
 
         return {
-            totalWebsites,
-            totalSoftware,
+            totalProducts,
             totalCustomers,
-            totalDownloads,
+            totalOrders,
             averageRating: ratingResult[0]?.avg ? parseFloat(ratingResult[0].avg.toFixed(1)) : 4.8,
             totalReviews,
         };
     },
 
     /**
-     * Revenue by Date Range - নির্দিষ্ট সময়ে কত আয় হয়েছে
+     * Revenue by Date Range
      */
     async getRevenueByDateRange(
         startDate: Date,
@@ -221,14 +203,14 @@ const AnalyticsService = {
         const result = await Order.aggregate([
             {
                 $match: {
-                    paymentStatus: 'completed',
-                    orderDate: { $gte: startDate, $lte: endDate },
+                    status: { $nin: ['cancelled', 'returned'] },
+                    createdAt: { $gte: startDate, $lte: endDate },
                 },
             },
             {
                 $group: {
-                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$orderDate' } },
-                    revenue: { $sum: '$totalAmount' },
+                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                    revenue: { $sum: '$total' },
                     orders: { $sum: 1 },
                 },
             },
@@ -243,146 +225,149 @@ const AnalyticsService = {
     },
 
     /**
-     * Category Revenue Breakdown - প্রোডাক্ট টাইপ অনুযায়ী রেভিনিউ (মাস ভিত্তিক)
-     * Returns monthly revenue for courses, websites, and software for the last 12 months
+     * Monthly Revenue - Last 12 months
      */
-    async getCategoryRevenue(): Promise<{
+    async getMonthlyRevenue(): Promise<{
         labels: string[];
-        courses: number[];
-        websites: number[];
-        software: number[];
+        revenue: number[];
+        orders: number[];
     }> {
         const monthsNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        // Get date 12 months ago from today
         const twelveMonthsAgo = new Date();
         twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
         twelveMonthsAgo.setDate(1);
         twelveMonthsAgo.setHours(0, 0, 0, 0);
 
-        // Fetch completed orders for the last 12 months
-        const orders = await Order.find({
-            paymentStatus: 'completed',
-            orderDate: { $gte: twelveMonthsAgo }
-        });
+        const result = await Order.aggregate([
+            {
+                $match: {
+                    status: { $nin: ['cancelled', 'returned'] },
+                    createdAt: { $gte: twelveMonthsAgo },
+                },
+            },
+            {
+                $group: {
+                    _id: {
+                        year: { $year: '$createdAt' },
+                        month: { $month: '$createdAt' },
+                    },
+                    revenue: { $sum: '$total' },
+                    orders: { $sum: 1 },
+                },
+            },
+            { $sort: { '_id.year': 1, '_id.month': 1 } },
+        ]);
 
-        // Prepare labels for the last 12 months
+        // Build labels and data arrays
         const labels: string[] = [];
-        const courseRevenue: number[] = new Array(12).fill(0);
-        const websiteRevenue: number[] = new Array(12).fill(0);
-        const softwareRevenue: number[] = new Array(12).fill(0);
+        const revenueData: number[] = [];
+        const ordersData: number[] = [];
 
-        // Map month indexes to our array indexes (0-11)
-        const monthToIdx: { [key: string]: number } = {};
         for (let i = 0; i < 12; i++) {
             const date = new Date(twelveMonthsAgo);
             date.setMonth(twelveMonthsAgo.getMonth() + i);
-            const mIdx = date.getMonth();
-            const yIdx = date.getFullYear();
-            const key = `${yIdx}-${mIdx}`;
-            labels.push(monthsNames[mIdx]);
-            monthToIdx[key] = i;
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+
+            labels.push(monthsNames[month - 1]);
+
+            const found = result.find((r: any) => r._id.year === year && r._id.month === month);
+            revenueData.push(found?.revenue || 0);
+            ordersData.push(found?.orders || 0);
         }
-
-        // Process each order
-        orders.forEach((order: any) => {
-            const orderDate = new Date(order.orderDate);
-            const month = orderDate.getMonth();
-            const year = orderDate.getFullYear();
-            const key = `${year}-${month}`;
-            const idx = monthToIdx[key];
-
-            if (idx !== undefined) {
-                order.items?.forEach((item: any) => {
-                    const amount = item.price || 0;
-                    const productType = item.productType?.toLowerCase() || '';
-
-                    if (productType === 'course') {
-                        courseRevenue[idx] += amount;
-                    } else if (productType === 'website') {
-                        websiteRevenue[idx] += amount;
-                    } else if (productType === 'software') {
-                        softwareRevenue[idx] += amount;
-                    }
-                });
-            }
-        });
-
-        console.log(`[Analytics] Category revenue generated from ${orders.length} orders`);
 
         return {
             labels,
-            courses: courseRevenue,
-            websites: websiteRevenue,
-            software: softwareRevenue,
+            revenue: revenueData,
+            orders: ordersData,
         };
     },
 
     /**
-     * Top Selling Products - সবচেয়ে বেশি বিক্রি হওয়া products
+     * Top Selling Products
      */
     async getTopSellingProducts(limit = 10): Promise<any[]> {
-        return await Website.find({ isDeleted: false })
-            .select('title slug price salesCount rating images')
+        return await Product.find({ status: 'active' })
+            .select('name slug price thumbnail salesCount rating reviewCount')
             .sort({ salesCount: -1 })
             .limit(limit);
     },
 
     /**
-     * Recent Purchases - সাম্প্রতিক purchases
+     * Top Rated Products
      */
-    async getRecentPurchases(limit = 20): Promise<any[]> {
-        return await Order.find({ paymentStatus: 'completed' })
-            .populate('user', 'firstName lastName email')
-            .sort({ orderDate: -1 })
+    async getTopRatedProducts(limit = 10): Promise<any[]> {
+        return await Product.find({ status: 'active', reviewCount: { $gte: 5 } })
+            .select('name slug price thumbnail salesCount rating reviewCount')
+            .sort({ rating: -1, reviewCount: -1 })
             .limit(limit);
     },
 
     /**
-     * Sales Report Data - CSV ডাউনলোড এর জন্য
+     * Recent Orders
      */
-    async getSalesReportData(
-        startDate: Date,
-        endDate: Date
-    ): Promise<{
-        orders: any[];
-        summary: {
-            totalOrders: number;
-            totalRevenue: number;
-            avgOrderValue: number;
-        };
-    }> {
-        const orders = await Order.find({
-            paymentStatus: 'completed',
-            orderDate: { $gte: startDate, $lte: endDate },
-        })
+    async getRecentOrders(limit = 20): Promise<any[]> {
+        return await Order.find({})
             .populate('user', 'firstName lastName email')
-            .sort({ orderDate: -1 });
-
-        const totalRevenue = orders.reduce((sum, order) => sum + order.totalAmount, 0);
-
-        return {
-            orders,
-            summary: {
-                totalOrders: orders.length,
-                totalRevenue,
-                avgOrderValue: orders.length > 0 ? totalRevenue / orders.length : 0,
-            },
-        };
+            .sort({ createdAt: -1 })
+            .limit(limit);
     },
 
     /**
-     * Customer Report - কোন customer কি কিনেছে
+     * Sales by Category
+     */
+    async getSalesByCategory(): Promise<{ category: string; sales: number; revenue: number }[]> {
+        const result = await Order.aggregate([
+            { $match: { status: { $nin: ['cancelled', 'returned'] } } },
+            { $unwind: '$items' },
+            {
+                $lookup: {
+                    from: 'products',
+                    localField: 'items.product',
+                    foreignField: '_id',
+                    as: 'product',
+                },
+            },
+            { $unwind: '$product' },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'product.category',
+                    foreignField: '_id',
+                    as: 'category',
+                },
+            },
+            { $unwind: '$category' },
+            {
+                $group: {
+                    _id: '$category.name',
+                    sales: { $sum: '$items.quantity' },
+                    revenue: { $sum: '$items.subtotal' },
+                },
+            },
+            { $sort: { revenue: -1 } },
+        ]);
+
+        return result.map((item: any) => ({
+            category: item._id,
+            sales: item.sales,
+            revenue: item.revenue,
+        }));
+    },
+
+    /**
+     * Customer Report
      */
     async getCustomerReport(): Promise<any[]> {
         return await Order.aggregate([
-            { $match: { paymentStatus: 'completed' } },
+            { $match: { status: { $nin: ['cancelled', 'returned'] } } },
             {
                 $group: {
                     _id: '$user',
                     totalOrders: { $sum: 1 },
-                    totalSpent: { $sum: '$totalAmount' },
-                    lastOrder: { $max: '$orderDate' },
+                    totalSpent: { $sum: '$total' },
+                    lastOrder: { $max: '$createdAt' },
                 },
             },
             {
@@ -411,7 +396,7 @@ const AnalyticsService = {
     },
 
     /**
-     * Generate CSV Content - CSV format 에 data তৈরি
+     * Generate Sales CSV
      */
     generateSalesCSV(orders: any[]): string {
         const headers = [
@@ -421,20 +406,21 @@ const AnalyticsService = {
             'Customer Email',
             'Products',
             'Total Amount (BDT)',
+            'Status',
             'Payment Status',
         ];
 
         const rows = orders.map((order) => [
             order.orderNumber,
-            new Date(order.orderDate).toISOString().split('T')[0],
+            new Date(order.createdAt).toISOString().split('T')[0],
             `${order.user?.firstName || ''} ${order.user?.lastName || ''}`.trim(),
             order.user?.email || '',
-            order.items?.map((i: any) => i.title).join('; ') || '',
-            order.totalAmount,
+            order.items?.map((i: any) => i.name).join('; ') || '',
+            order.total,
+            order.status,
             order.paymentStatus,
         ]);
 
-        // Create CSV string
         const csvContent = [
             headers.join(','),
             ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
@@ -472,10 +458,8 @@ const AnalyticsService = {
 
 // ==================== CONTROLLER ====================
 const AnalyticsController = {
-    // Dashboard Summary
     getDashboard: catchAsync(async (req: Request, res: Response) => {
         const summary = await AnalyticsService.getDashboardSummary();
-
         sendResponse(res, {
             statusCode: 200,
             success: true,
@@ -484,15 +468,11 @@ const AnalyticsController = {
         });
     }),
 
-    // Revenue by Date Range
     getRevenue: catchAsync(async (req: Request, res: Response) => {
         const { startDate, endDate } = req.query;
-
         const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
         const end = endDate ? new Date(endDate as string) : new Date();
-
         const revenueData = await AnalyticsService.getRevenueByDateRange(start, end);
-
         sendResponse(res, {
             statusCode: 200,
             success: true,
@@ -501,11 +481,19 @@ const AnalyticsController = {
         });
     }),
 
-    // Top Selling Products
+    getMonthlyRevenue: catchAsync(async (req: Request, res: Response) => {
+        const data = await AnalyticsService.getMonthlyRevenue();
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: 'Monthly revenue fetched',
+            data: data,
+        });
+    }),
+
     getTopProducts: catchAsync(async (req: Request, res: Response) => {
         const limit = Number(req.query.limit) || 10;
         const products = await AnalyticsService.getTopSellingProducts(limit);
-
         sendResponse(res, {
             statusCode: 200,
             success: true,
@@ -514,51 +502,40 @@ const AnalyticsController = {
         });
     }),
 
-    // Recent Purchases
-    getRecentPurchases: catchAsync(async (req: Request, res: Response) => {
-        const limit = Number(req.query.limit) || 20;
-        const purchases = await AnalyticsService.getRecentPurchases(limit);
-
+    getTopRatedProducts: catchAsync(async (req: Request, res: Response) => {
+        const limit = Number(req.query.limit) || 10;
+        const products = await AnalyticsService.getTopRatedProducts(limit);
         sendResponse(res, {
             statusCode: 200,
             success: true,
-            message: 'Recent purchases fetched',
-            data: purchases,
+            message: 'Top rated products fetched',
+            data: products,
         });
     }),
 
-    // Download Sales Report (CSV)
-    downloadSalesReport: catchAsync(async (req: Request, res: Response) => {
-        const { startDate, endDate } = req.query;
-
-        const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        const end = endDate ? new Date(endDate as string) : new Date();
-
-        const { orders, summary } = await AnalyticsService.getSalesReportData(start, end);
-        const csv = AnalyticsService.generateSalesCSV(orders);
-
-        // Set headers for CSV download
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', `attachment; filename=sales-report-${start.toISOString().split('T')[0]}-to-${end.toISOString().split('T')[0]}.csv`);
-
-        res.send(csv);
+    getRecentOrders: catchAsync(async (req: Request, res: Response) => {
+        const limit = Number(req.query.limit) || 20;
+        const orders = await AnalyticsService.getRecentOrders(limit);
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: 'Recent orders fetched',
+            data: orders,
+        });
     }),
 
-    // Download Customer Report (CSV)
-    downloadCustomerReport: catchAsync(async (req: Request, res: Response) => {
-        const customers = await AnalyticsService.getCustomerReport();
-        const csv = AnalyticsService.generateCustomerCSV(customers);
-
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', 'attachment; filename=customer-report.csv');
-
-        res.send(csv);
+    getSalesByCategory: catchAsync(async (req: Request, res: Response) => {
+        const data = await AnalyticsService.getSalesByCategory();
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: 'Sales by category fetched',
+            data: data,
+        });
     }),
 
-    // Get Customer Report (JSON)
     getCustomerReport: catchAsync(async (req: Request, res: Response) => {
         const customers = await AnalyticsService.getCustomerReport();
-
         sendResponse(res, {
             statusCode: 200,
             success: true,
@@ -567,10 +544,36 @@ const AnalyticsController = {
         });
     }),
 
-    // Public Statistics (no auth required)
+    downloadSalesReport: catchAsync(async (req: Request, res: Response) => {
+        const { startDate, endDate } = req.query;
+        const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const end = endDate ? new Date(endDate as string) : new Date();
+
+        const orders = await Order.find({
+            status: { $nin: ['cancelled', 'returned'] },
+            createdAt: { $gte: start, $lte: end },
+        })
+            .populate('user', 'firstName lastName email')
+            .sort({ createdAt: -1 });
+
+        const csv = AnalyticsService.generateSalesCSV(orders);
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=sales-report-${start.toISOString().split('T')[0]}-to-${end.toISOString().split('T')[0]}.csv`);
+        res.send(csv);
+    }),
+
+    downloadCustomerReport: catchAsync(async (req: Request, res: Response) => {
+        const customers = await AnalyticsService.getCustomerReport();
+        const csv = AnalyticsService.generateCustomerCSV(customers);
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=customer-report.csv');
+        res.send(csv);
+    }),
+
     getPublicStats: catchAsync(async (req: Request, res: Response) => {
         const stats = await AnalyticsService.getPublicStatistics();
-
         sendResponse(res, {
             statusCode: 200,
             success: true,
@@ -578,50 +581,25 @@ const AnalyticsController = {
             data: stats,
         });
     }),
-
-    // Category Revenue Breakdown
-    getCategoryRevenue: catchAsync(async (req: Request, res: Response) => {
-        const data = await AnalyticsService.getCategoryRevenue();
-
-        sendResponse(res, {
-            statusCode: 200,
-            success: true,
-            message: 'Category revenue fetched',
-            data: data,
-        });
-    }),
 };
 
 // ==================== ROUTES ====================
 const router = express.Router();
 
-// ========== PUBLIC ROUTES (No Auth) ==========
-// Public stats for home page - MUST be before auth middleware
+// Public routes
 router.get('/public-stats', AnalyticsController.getPublicStats);
 
-// ========== ADMIN ROUTES (Auth Required) ==========
-// All routes below require admin authentication
-router.use(authMiddleware, authorizeRoles('admin'));
+// Admin routes
+router.use(authMiddleware, authorizeRoles('admin', 'super_admin'));
 
-// Dashboard
 router.get('/dashboard', AnalyticsController.getDashboard);
-
-// Revenue
 router.get('/revenue', AnalyticsController.getRevenue);
-
-// Category Revenue Breakdown (for charts)
-router.get('/category-revenue', AnalyticsController.getCategoryRevenue);
-
-// Top Products
+router.get('/monthly-revenue', AnalyticsController.getMonthlyRevenue);
 router.get('/top-products', AnalyticsController.getTopProducts);
-
-// Recent Purchases
-router.get('/recent-purchases', AnalyticsController.getRecentPurchases);
-
-// Customer Report
+router.get('/top-rated', AnalyticsController.getTopRatedProducts);
+router.get('/recent-orders', AnalyticsController.getRecentOrders);
+router.get('/sales-by-category', AnalyticsController.getSalesByCategory);
 router.get('/customers', AnalyticsController.getCustomerReport);
-
-// Download Reports (CSV)
 router.get('/download/sales', AnalyticsController.downloadSalesReport);
 router.get('/download/customers', AnalyticsController.downloadCustomerReport);
 
