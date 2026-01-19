@@ -89,5 +89,28 @@ export default {
     private_key: process.env.NAGAD_PRIVATE_KEY || '',
     is_live: process.env.NAGAD_IS_LIVE === 'true',
   },
-};
 
+  // ==================== Redis Configuration ====================
+  // Redis ক্যাশিং সেটিংস (optional)
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: Number(process.env.REDIS_PORT) || 6379,
+    password: process.env.REDIS_PASSWORD || undefined,
+    db: Number(process.env.REDIS_DB) || 0,
+    enabled: process.env.REDIS_ENABLED === 'true',
+  },
+
+  // ==================== Socket.io Configuration ====================
+  // Real-time WebSocket সেটিংস
+  socket: {
+    enabled: process.env.SOCKET_ENABLED !== 'false',
+    cors_origins: (process.env.SOCKET_CORS_ORIGINS || '').split(',').filter(Boolean),
+  },
+
+  // ==================== Logging Configuration ====================
+  // Winston logging সেটিংস
+  logging: {
+    level: process.env.LOG_LEVEL || 'info',
+    save_to_file: process.env.LOG_TO_FILE !== 'false',
+  },
+};

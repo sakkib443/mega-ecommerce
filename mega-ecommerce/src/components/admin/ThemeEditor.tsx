@@ -65,9 +65,9 @@ const ThemeEditor: React.FC = () => {
                     {/* Settings Panel */}
                     <div className="lg:col-span-2 space-y-6">
                         {/* Colors */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6">
                             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-lg bgp flex items-center justify-center text-white">🎨</span>
+                                <span className="w-8 h-8 rounded-md bgp flex items-center justify-center text-white font-bold">🎨</span>
                                 Colors
                             </h2>
 
@@ -82,14 +82,14 @@ const ThemeEditor: React.FC = () => {
                                                 type="color"
                                                 value={(theme as any)[input.key]}
                                                 onChange={(e) => handleColorChange(input.key, e.target.value)}
-                                                className="w-12 h-12 rounded-lg cursor-pointer border-2 border-gray-200"
+                                                className="w-12 h-12 rounded-md cursor-pointer border-2 border-gray-200"
                                             />
                                             <div>
                                                 <input
                                                     type="text"
                                                     value={(theme as any)[input.key]}
                                                     onChange={(e) => handleColorChange(input.key, e.target.value)}
-                                                    className="w-28 px-3 py-2 border rounded-lg text-sm font-mono"
+                                                    className="w-28 px-3 py-2 border rounded-md text-sm font-mono"
                                                 />
                                                 <p className="text-xs text-gray-400 mt-1">{input.description}</p>
                                             </div>
@@ -100,9 +100,9 @@ const ThemeEditor: React.FC = () => {
                         </div>
 
                         {/* Typography */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6">
                             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white">Aa</span>
+                                <span className="w-8 h-8 rounded-md bg-blue-500 flex items-center justify-center text-white font-bold">Aa</span>
                                 Typography
                             </h2>
 
@@ -114,7 +114,7 @@ const ThemeEditor: React.FC = () => {
                                     <select
                                         value={theme.fontFamily}
                                         onChange={(e) => dispatch(updateTheme({ fontFamily: e.target.value, headingFont: e.target.value }))}
-                                        className="w-full px-3 py-2 border rounded-lg"
+                                        className="w-full px-3 py-2 border rounded-md"
                                     >
                                         <option value="'Poppins', sans-serif">Poppins</option>
                                         <option value="'Inter', sans-serif">Inter</option>
@@ -128,9 +128,9 @@ const ThemeEditor: React.FC = () => {
                         </div>
 
                         {/* Dark Mode */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6">
                             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                                <span className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-white">🌙</span>
+                                <span className="w-8 h-8 rounded-md bg-gray-800 flex items-center justify-center text-white">🌙</span>
                                 Dark Mode
                             </h2>
 
@@ -156,7 +156,7 @@ const ThemeEditor: React.FC = () => {
                         <div className="flex gap-4">
                             <button
                                 onClick={() => dispatch(resetTheme())}
-                                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300 transition-colors"
                             >
                                 Reset to Default
                             </button>
@@ -165,7 +165,7 @@ const ThemeEditor: React.FC = () => {
                                     localStorage.setItem('megashop-theme', JSON.stringify(theme));
                                     alert('Theme saved successfully!');
                                 }}
-                                className="px-6 py-3 bgp text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+                                className="px-6 py-3 bgp text-white rounded-md font-medium hover:opacity-90 transition-opacity"
                             >
                                 Save Theme
                             </button>
@@ -174,16 +174,16 @@ const ThemeEditor: React.FC = () => {
 
                     {/* Preview Panel */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-8">
+                        <div className="bg-white rounded-md shadow-sm border border-gray-200 p-6 sticky top-8">
                             <h2 className="text-xl font-semibold mb-6">Live Preview</h2>
 
                             {/* Preview Card */}
                             <div
-                                className="rounded-lg p-4 mb-4"
+                                className="rounded-md p-4 mb-4"
                                 style={{ backgroundColor: theme.surfaceColor }}
                             >
                                 <div
-                                    className="w-16 h-16 rounded-lg mb-3 flex items-center justify-center text-2xl"
+                                    className="w-16 h-16 rounded-md mb-3 flex items-center justify-center text-2xl"
                                     style={{ backgroundColor: theme.primaryColor }}
                                 >
                                     🛍️
@@ -219,19 +219,19 @@ const ThemeEditor: React.FC = () => {
                             {/* Preview Buttons */}
                             <div className="space-y-3">
                                 <button
-                                    className="w-full py-2 rounded-lg text-white font-medium"
+                                    className="w-full py-2 rounded-md text-white font-medium"
                                     style={{ backgroundColor: theme.primaryColor }}
                                 >
                                     Primary Button
                                 </button>
                                 <button
-                                    className="w-full py-2 rounded-lg text-white font-medium"
+                                    className="w-full py-2 rounded-md text-white font-medium"
                                     style={{ backgroundColor: theme.secondaryColor }}
                                 >
                                     Secondary Button
                                 </button>
                                 <button
-                                    className="w-full py-2 rounded-lg text-white font-medium"
+                                    className="w-full py-2 rounded-md text-white font-medium"
                                     style={{ backgroundColor: theme.accentColor }}
                                 >
                                     Accent Button
@@ -241,19 +241,19 @@ const ThemeEditor: React.FC = () => {
                             {/* Status Colors */}
                             <div className="mt-4 flex gap-2">
                                 <span
-                                    className="px-3 py-1 rounded-full text-white text-xs"
+                                    className="px-3 py-1 rounded-md text-white text-xs"
                                     style={{ backgroundColor: theme.successColor }}
                                 >
                                     Success
                                 </span>
                                 <span
-                                    className="px-3 py-1 rounded-full text-white text-xs"
+                                    className="px-3 py-1 rounded-md text-white text-xs"
                                     style={{ backgroundColor: theme.warningColor }}
                                 >
                                     Warning
                                 </span>
                                 <span
-                                    className="px-3 py-1 rounded-full text-white text-xs"
+                                    className="px-3 py-1 rounded-md text-white text-xs"
                                     style={{ backgroundColor: theme.errorColor }}
                                 >
                                     Error

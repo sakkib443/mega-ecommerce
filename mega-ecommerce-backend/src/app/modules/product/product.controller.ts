@@ -37,7 +37,7 @@ const ProductController = {
             visibility: req.query.visibility as string,
             isFeatured: req.query.isFeatured === 'true' ? true : req.query.isFeatured === 'false' ? false : undefined,
             isOnSale: req.query.isOnSale === 'true' ? true : req.query.isOnSale === 'false' ? false : undefined,
-            isNew: req.query.isNew === 'true' ? true : req.query.isNew === 'false' ? false : undefined,
+            isNewProduct: req.query.isNewProduct === 'true' ? true : req.query.isNewProduct === 'false' ? false : undefined,
             search: req.query.search as string,
             tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
             inStock: req.query.inStock === 'true',

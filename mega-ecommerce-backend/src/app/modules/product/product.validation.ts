@@ -99,7 +99,7 @@ export const createProductValidation = z.object({
         visibility: z.enum(['visible', 'hidden', 'featured']).default('visible'),
         isActive: z.boolean().default(true),
         isFeatured: z.boolean().default(false),
-        isNew: z.boolean().default(true),
+        isNewProduct: z.boolean().default(true),
         isOnSale: z.boolean().default(false),
 
         // Sale Dates
@@ -152,7 +152,7 @@ export const updateProductValidation = z.object({
         visibility: z.enum(['visible', 'hidden', 'featured']).optional(),
         isActive: z.boolean().optional(),
         isFeatured: z.boolean().optional(),
-        isNew: z.boolean().optional(),
+        isNewProduct: z.boolean().optional(),
         isOnSale: z.boolean().optional(),
 
         saleStartDate: z.string().datetime().optional(),
@@ -176,7 +176,7 @@ export const getProductsValidation = z.object({
         visibility: z.enum(['visible', 'hidden', 'featured']).optional(),
         isFeatured: z.string().optional(),
         isOnSale: z.string().optional(),
-        isNew: z.string().optional(),
+        isNewProduct: z.string().optional(),
         search: z.string().optional(),
         tags: z.string().optional(), // comma-separated
         inStock: z.string().optional(),

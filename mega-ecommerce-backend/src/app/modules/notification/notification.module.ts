@@ -11,7 +11,7 @@ import sendResponse from '../../utils/sendResponse';
 
 // ============ INTERFACE ============
 export interface INotification extends Document {
-    type: 'order' | 'order_status' | 'review' | 'user' | 'product' | 'system' | 'wishlist' | 'promotion';
+    type: 'order' | 'order_status' | 'review' | 'user' | 'product' | 'system' | 'wishlist' | 'promotion' | 'blog';
     title: string;
     message: string;
     data?: {
@@ -35,7 +35,7 @@ const NotificationSchema = new Schema<INotification>(
     {
         type: {
             type: String,
-            enum: ['order', 'order_status', 'review', 'user', 'product', 'system', 'wishlist', 'promotion'],
+            enum: ['order', 'order_status', 'review', 'user', 'product', 'system', 'wishlist', 'promotion', 'blog'],
             required: true,
         },
         title: {

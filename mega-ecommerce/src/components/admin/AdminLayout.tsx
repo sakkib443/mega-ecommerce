@@ -50,7 +50,16 @@ const menuItems = [
         submenu: [
             { name: 'All Products', href: '/dashboard/admin/products' },
             { name: 'Add Product', href: '/dashboard/admin/products/new' },
-            { name: 'Categories', href: '/dashboard/admin/categories' },
+        ]
+    },
+    {
+        name: 'Categories',
+        href: '/dashboard/admin/categories',
+        icon: FiGrid,
+        badge: null,
+        submenu: [
+            { name: 'All Categories', href: '/dashboard/admin/categories' },
+            { name: 'Create Category', href: '/dashboard/admin/categories/new' },
         ]
     },
     {
@@ -151,7 +160,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 <div className="h-16 flex items-center justify-between px-4 border-b border-gray-700/50">
                     {sidebarOpen && (
                         <Link href="/dashboard/admin" className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5CAF90] to-[#4A9A7D] flex items-center justify-center font-bold text-lg shadow-lg shadow-[#5CAF90]/30">
+                            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-[#5CAF90] to-[#4A9A7D] flex items-center justify-center font-bold text-lg shadow-md">
                                 M
                             </div>
                             <div>
@@ -162,13 +171,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     )}
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="hidden lg:flex p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        className="hidden lg:flex p-2 hover:bg-white/10 rounded-md transition-colors"
                     >
                         <FiMenu size={20} />
                     </button>
                     <button
                         onClick={() => setMobileMenuOpen(false)}
-                        className="lg:hidden p-2 hover:bg-white/10 rounded-lg"
+                        className="lg:hidden p-2 hover:bg-white/10 rounded-md"
                     >
                         <FiX size={20} />
                     </button>
@@ -199,9 +208,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                         }
                                     }}
                                     className={`
-                                        flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200
+                                        flex items-center justify-between px-4 py-3 rounded-md transition-all duration-200
                                         ${active
-                                            ? 'bg-gradient-to-r from-[#5CAF90] to-[#4A9A7D] text-white shadow-lg shadow-[#5CAF90]/30'
+                                            ? 'bg-[#5CAF90] text-white shadow-md'
                                             : 'text-gray-300 hover:bg-white/10 hover:text-white'
                                         }
                                     `}
@@ -235,7 +244,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                                 key={sub.name}
                                                 href={sub.href}
                                                 className={`
-                                                    block px-4 py-2 rounded-lg text-sm transition-colors
+                                                    block px-4 py-2 rounded-md text-sm transition-colors
                                                     ${pathname === sub.href
                                                         ? 'text-[#5CAF90] bg-[#5CAF90]/10'
                                                         : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -265,7 +274,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                 key={item.name}
                                 href={item.href}
                                 className={`
-                                    flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                                    flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200
                                     ${active
                                         ? 'bg-white/10 text-white'
                                         : 'text-gray-400 hover:bg-white/5 hover:text-white'
@@ -283,7 +292,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700/50 bg-[#1E293B]">
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-red-500/20 hover:text-red-400 transition-all"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-md text-gray-300 hover:bg-red-500/20 hover:text-red-400 transition-all"
                     >
                         <FiLogOut size={20} />
                         {sidebarOpen && <span className="font-medium">Logout</span>}
@@ -299,11 +308,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setMobileMenuOpen(true)}
-                            className="lg:hidden p-2 hover:bg-gray-100 rounded-xl"
+                            className="lg:hidden p-2 hover:bg-gray-100 rounded-md"
                         >
                             <FiMenu size={24} />
                         </button>
-                        <div className="hidden md:flex items-center gap-2 bg-gray-100 rounded-xl px-4 py-2.5">
+                        <div className="hidden md:flex items-center gap-2 bg-gray-100 rounded-md px-4 py-2.5">
                             <FiSearch className="text-gray-400" size={18} />
                             <input
                                 type="text"
@@ -319,14 +328,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                         <Link
                             href="/"
                             target="_blank"
-                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-600 transition-colors"
+                            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium text-gray-600 transition-colors"
                         >
                             <FiGlobe size={16} />
                             Visit Store
                         </Link>
 
                         {/* Notifications */}
-                        <button className="relative p-2.5 hover:bg-gray-100 rounded-xl">
+                        <button className="relative p-2.5 hover:bg-gray-100 rounded-md">
                             <FiBell size={22} />
                             {notifications > 0 && (
                                 <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-bold">
@@ -336,8 +345,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                         </button>
 
                         {/* Profile */}
-                        <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 rounded-xl px-3 py-2 transition-colors">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5CAF90] to-[#4A9A7D] flex items-center justify-center text-white font-bold shadow-lg shadow-[#5CAF90]/20">
+                        <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 rounded-md px-3 py-2 transition-colors">
+                            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-[#5CAF90] to-[#4A9A7D] flex items-center justify-center text-white font-bold shadow-md">
                                 A
                             </div>
                             <div className="hidden sm:block">

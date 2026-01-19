@@ -8,6 +8,9 @@ import { useAppSelector } from '@/redux';
 const MinHeader: React.FC = () => {
     const cartItems = useAppSelector(state => state.cart.items);
     const wishlistItems = useAppSelector(state => state.wishlist.items);
+    const auth = useAppSelector(state => state.auth);
+    const { user, isAuthenticated } = auth;
+
     const [searchQuery, setSearchQuery] = useState('');
     const [showSearch, setShowSearch] = useState(false);
 
@@ -90,30 +93,44 @@ const MinHeader: React.FC = () => {
                         {/* User Account */}
                         <div className="relative group">
                             <button className="flex items-center gap-3 p-1.5 pr-2 hover:bg-gray-50 rounded-md transition-all">
-                                <div className="w-9 h-9 rounded-md bg-gray-100 flex items-center justify-center">
-                                    <FiUser size={19} className="text-gray-600" />
+                                <div className="w-9 h-9 rounded-md bg-gray-100 flex items-center justify-center font-bold text-[var(--color-primary)]">
+                                    {isAuthenticated ? user?.name?.charAt(0).toUpperCase() : <FiUser size={19} className="text-gray-600" />}
                                 </div>
                                 <div className="hidden xl:block text-left">
                                     <p className="text-[11px] font-semibold text-gray-400 uppercase leading-none">Account</p>
-                                    <p className="text-[14px] font-medium text-gray-700 mt-1 flex items-center gap-1">Login <FiChevronDown size={14} /></p>
+                                    <p className="text-[14px] font-medium text-gray-700 mt-1 flex items-center gap-1">
+                                        {isAuthenticated ? user?.name.split(' ')[0] : 'Login'} <FiChevronDown size={14} />
+                                    </p>
                                 </div>
                             </button>
 
                             {/* Dropdown Card */}
-                            <div className="absolute right-0 top-[110%] w-64 bg-white rounded-md shadow-2xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-50">
-                                <div className="p-6">
-                                    <h4 className="text-lg font-bold text-gray-800 mb-1">Welcome!</h4>
-                                    <p className="text-xs text-gray-500 mb-4">Access your account & orders</p>
-                                    <div className="flex gap-2">
-                                        <Link href="/login" className="flex-1 py-2.5 text-center text-xs font-bold bg-[var(--color-primary)] text-white rounded-md hover:opacity-90 transition-all">
-                                            SIGN IN
-                                        </Link>
-                                        <Link href="/register" className="flex-1 py-2.5 text-center text-xs font-bold border border-gray-200 text-gray-700 rounded-md hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all">
-                                            JOIN
-                                        </Link>
+                            <div className="absolute right-0 top-[110%] w-64 bg-white rounded-md shadow-2xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible translate-y-2 group-hover:translate-y-0 transition-all duration-300 z-50 overflow-hidden">
+                                {!isAuthenticated ? (
+                                    <div className="p-6">
+                                        <h4 className="text-lg font-bold text-gray-800 mb-1">Welcome!</h4>
+                                        <p className="text-xs text-gray-500 mb-4">Access your account & orders</p>
+                                        <div className="flex gap-2">
+                                            <Link href="/login" className="flex-1 py-2.5 text-center text-xs font-bold bg-[var(--color-primary)] text-white rounded-md hover:opacity-90 transition-all">
+                                                SIGN IN
+                                            </Link>
+                                            <Link href="/register" className="flex-1 py-2.5 text-center text-xs font-bold border border-gray-200 text-gray-700 rounded-md hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all">
+                                                JOIN
+                                            </Link>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="py-2 border-t border-gray-50">
+                                ) : (
+                                    <div className="p-6 bg-gray-50 border-b border-gray-100">
+                                        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Signed in as</p>
+                                        <p className="text-sm font-bold text-gray-800 truncate">{user?.email}</p>
+                                    </div>
+                                )}
+                                <div className="py-2">
+                                    {isAuthenticated && user?.role === 'admin' && (
+                                        <Link href="/dashboard/admin" className="block px-6 py-2.5 text-sm font-bold text-[var(--color-primary)] bg-[var(--color-primary)]/5 hover:bg-[var(--color-primary)]/10 transition-all border-b border-gray-50">
+                                            💎 Admin Dashboard
+                                        </Link>
+                                    )}
                                     {[
                                         { label: 'My Profile', href: '/account' },
                                         { label: 'Order History', href: '/orders' },

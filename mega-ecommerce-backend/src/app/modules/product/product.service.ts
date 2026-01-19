@@ -111,8 +111,8 @@ const ProductService = {
         if (filters.isOnSale !== undefined) {
             query.isOnSale = filters.isOnSale;
         }
-        if (filters.isNew !== undefined) {
-            query.isNew = filters.isNew;
+        if (filters.isNewProduct !== undefined) {
+            query.isNewProduct = filters.isNewProduct;
         }
         if (filters.tags && filters.tags.length > 0) {
             query.tags = { $in: filters.tags };

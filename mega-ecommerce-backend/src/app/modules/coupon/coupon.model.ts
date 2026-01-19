@@ -1,5 +1,5 @@
 // ===================================================================
-// MotionBoss LMS - Coupon Model
+// Mega E-Commerce - Coupon Model
 // Mongoose schema for coupons
 // ===================================================================
 
@@ -66,12 +66,16 @@ const couponSchema = new Schema<ICoupon, CouponModel>(
         },
         applicableTo: {
             type: String,
-            enum: ['all', 'course', 'website', 'software'],
+            enum: ['all', 'specific_products', 'specific_categories'],
             default: 'all'
         },
         specificProducts: [{
             type: Schema.Types.ObjectId,
-            refPath: 'applicableTo'
+            ref: 'Product'
+        }],
+        specificCategories: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Category'
         }],
         isActive: {
             type: Boolean,

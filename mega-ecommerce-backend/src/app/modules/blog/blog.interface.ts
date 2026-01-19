@@ -38,7 +38,7 @@ export interface IBlog {
 
     // ==================== Author Info ====================
     author: Types.ObjectId;           // Reference to User (admin/mentor)
-    authorRole: 'admin' | 'mentor';   // Who wrote the blog
+    authorRole: 'admin' | 'super_admin';   // Who wrote the blog
 
     // ==================== Status & Visibility ====================
     status: TBlogStatus;              // Draft/Published/Archived
@@ -93,7 +93,7 @@ export interface IBlogFilters {
     category?: string;
     status?: TBlogStatus;
     author?: string;
-    authorRole?: 'admin' | 'mentor';
+    authorRole?: 'admin' | 'super_admin';
     isFeatured?: boolean;
     isPopular?: boolean;
     tags?: string[];

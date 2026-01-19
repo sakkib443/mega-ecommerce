@@ -1,7 +1,7 @@
 {
-  "name": "ejobsit-backend",
-  "version": "1.0.0",
-  "description": "ejobsit Marketplace Backend - ThemeForest style website/software marketplace API",
+  "name": "mega-ecommerce-backend",
+  "version": "2.0.0",
+  "description": "Mega E-Commerce Backend - Professional E-Commerce API with Testing, Caching, Real-time Features",
   "main": "index.js",
   "scripts": {
     "start:prod": "node ./dist/server.js",
@@ -11,7 +11,12 @@
     "lint:fix": "npx eslint src --fix",
     "prettier": "prettier --ignore-path .gitignore --write \"./src/**/*.+(js|ts|json)\"",
     "prettier:fix": "npx prettier --write src",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --runInBand --detectOpenHandles",
+    "test:watch": "jest --watch --runInBand",
+    "test:coverage": "jest --coverage --runInBand",
+    "test:unit": "jest --testPathPattern=unit --runInBand",
+    "test:integration": "jest --testPathPattern=integration --runInBand",
+    "test:verbose": "jest --verbose --runInBand --detectOpenHandles"
   },
   "keywords": [
     "marketplace",
@@ -37,6 +42,7 @@
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
+    "ioredis": "^5.9.2",
     "jsonwebtoken": "^9.0.2",
     "lint-staged": "^15.1.0",
     "mongoose": "^8.0.1",
@@ -44,8 +50,11 @@
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^7.0.12",
     "pdfkit": "^0.17.2",
+    "socket.io": "^4.8.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -54,15 +63,23 @@
     "@types/cookie-parser": "^1.4.6",
     "@types/cors": "^2.8.16",
     "@types/express": "^4.17.21",
+    "@types/ioredis": "^4.28.10",
+    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/nodemailer": "^7.0.4",
     "@types/pdfkit": "^0.17.4",
+    "@types/socket.io": "^3.0.1",
+    "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.11.0",
     "eslint": "^8.53.0",
     "eslint-config-prettier": "^9.0.0",
     "husky": "^8.0.0",
+    "jest": "^30.2.0",
+    "mongodb-memory-server": "^11.0.1",
     "prettier": "^3.1.0",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.6",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.2.2"
   }

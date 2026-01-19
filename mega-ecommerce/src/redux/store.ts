@@ -8,7 +8,10 @@ import {
     uiReducer
 } from './slices';
 
+import { baseApi } from './api/baseApi';
+
 const rootReducer = combineReducers({
+    [baseApi.reducerPath]: baseApi.reducer,
     cart: cartReducer,
     auth: authReducer,
     wishlist: wishlistReducer,
@@ -22,9 +25,10 @@ export const store = configureStore({
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: false,
-        }),
+        }).concat(baseApi.middleware),
     devTools: process.env.NODE_ENV !== 'production',
 });
+
 
 // Infer types from store
 export type RootState = ReturnType<typeof store.getState>;

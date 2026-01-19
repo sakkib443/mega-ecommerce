@@ -1,5 +1,5 @@
 // ===================================================================
-// MotionBoss LMS - Coupon Validation
+// Mega E-Commerce - Coupon Validation
 // Zod validation schemas for coupon module
 // ===================================================================
 
@@ -26,8 +26,9 @@ const createCouponZodSchema = z.object({
         endDate: z.string().or(z.date()),
         usageLimit: z.number().min(1).optional().nullable(),
         usagePerUser: z.number().min(1).optional(),
-        applicableTo: z.enum(['all', 'course', 'website', 'software']).optional(),
+        applicableTo: z.enum(['all', 'specific_products', 'specific_categories']).optional(),
         specificProducts: z.array(z.string()).optional(),
+        specificCategories: z.array(z.string()).optional(),
         isActive: z.boolean().optional()
     })
 });
@@ -45,8 +46,9 @@ const updateCouponZodSchema = z.object({
         endDate: z.string().or(z.date()).optional(),
         usageLimit: z.number().min(1).optional().nullable(),
         usagePerUser: z.number().min(1).optional(),
-        applicableTo: z.enum(['all', 'course', 'website', 'software']).optional(),
+        applicableTo: z.enum(['all', 'specific_products', 'specific_categories']).optional(),
         specificProducts: z.array(z.string()).optional(),
+        specificCategories: z.array(z.string()).optional(),
         isActive: z.boolean().optional()
     })
 });
@@ -59,7 +61,12 @@ const applyCouponZodSchema = z.object({
         cartTotal: z.number({
             required_error: 'Cart total is required'
         }).min(0),
-        productType: z.enum(['all', 'course', 'website', 'software']).optional()
+        items: z.array(z.object({
+            product: z.string(),
+            category: z.string(),
+            price: z.number(),
+            quantity: z.number()
+        })).optional()
     })
 });
 

@@ -28,7 +28,7 @@ export interface IUserAddress {
 }
 
 // Main User Interface
-export interface IUser extends Document {
+export interface IUser extends Document, IUserMethods {
   _id: Types.ObjectId;
 
   // Auth

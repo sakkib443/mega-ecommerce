@@ -1,5 +1,5 @@
 // ===================================================================
-// MotionBoss LMS - Coupon Interface
+// Mega E-Commerce - Coupon Interface
 // Coupon/Discount code management module
 // ===================================================================
 
@@ -31,9 +31,10 @@ export interface ICoupon {
     usagePerUser?: number;           // Usage limit per user
     usedCount: number;               // How many times used
 
-    // Applicable Products
-    applicableTo: 'all' | 'course' | 'website' | 'software';
-    specificProducts?: Types.ObjectId[];  // Specific product IDs
+    // Applicable To
+    applicableTo: 'all' | 'specific_products' | 'specific_categories';
+    specificProducts?: Types.ObjectId[];   // Specific product IDs
+    specificCategories?: Types.ObjectId[]; // Specific category IDs
 
     // Status
     isActive: boolean;
